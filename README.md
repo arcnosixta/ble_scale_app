@@ -4,7 +4,11 @@ A new Flutter project.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+How you can install it?
+#git clone https://github.com/arcnosixta/Ble_Scale
+#cd Ble_Scale
+#flutter pub get
+#flutter run
 
 A few resources to get you started if this is your first Flutter project:
 
