@@ -4,15 +4,15 @@ A new Flutter project.
 
 ## Getting Started
 
-How you can install it?
+# How you can install it?
 
-# git clone https://github.com/arcnosixta/Ble_Scale
+ git clone https://github.com/arcnosixta/Ble_Scale
 
-# cd Ble_Scale
+ cd Ble_Scale
 
-# flutter pub get
+ flutter pub get
 
-# flutter run
+ lutter run
 
 A few resources to get you started if this is your first Flutter project:
 
