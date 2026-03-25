@@ -31,6 +31,7 @@ class _DeviceIceState extends State<DeviceIce> {
   double _weightValue = 0;
   String _measurementStateStr = '';
   Timer? _timer;
+  int _selectedIndex = 0;
 
   final List<GridItem> _gridItems = [
     GridItem(DeviceMenuType.syncTime.value),
@@ -53,6 +54,7 @@ class _DeviceIceState extends State<DeviceIce> {
 
   @override
   void initState() {
+
 
     final ppDevice = widget.device;
     PPBluetoothKitManager.connectDevice(ppDevice, callBack: (state) {
@@ -336,7 +338,7 @@ class _DeviceIceState extends State<DeviceIce> {
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
-        title: const Text("Ice Scale"),
+        title: const Text("SAUYT"),
         backgroundColor: Colors.black,
         elevation: 0,
       ),
@@ -344,7 +346,6 @@ class _DeviceIceState extends State<DeviceIce> {
         children: [
 
           const SizedBox(height: 20),
-
           // ⚖️ ВЕС (главный блок)
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
