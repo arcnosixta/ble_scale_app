@@ -22,6 +22,8 @@ class _DeviceIceState extends State<DeviceIce> {
   PPDeviceConnectionState _connectionStatus = PPDeviceConnectionState.disconnected;
   double _weightValue = 0;
   String _measurementStateStr = 'Ожидание...';
+  bool _isMeasuring = false;
+  bool _showResults = false;
   Timer? _timer;
 
   // Данные пользователя для точного расчета жира
@@ -57,23 +59,26 @@ class _DeviceIceState extends State<DeviceIce> {
 
     PPBluetoothKitManager.addMeasurementListener(
       callBack: (measurementState, dataModel, device) {
-
-        print("RAW DATA: ${dataModel.toJson()}");
-
-
         if (mounted) {
           setState(() {
             _weightValue = dataModel.weight / 100.0;
-            _bodyData = dataModel; // Сохраняем модель (включая импеданс для сетки)
+            _bodyData = dataModel;
 
             if (measurementState == PPMeasurementDataState.completed) {
               _measurementStateStr = 'Готово';
+              _isMeasuring = false;
+              _showResults = true;
             } else if (measurementState == PPMeasurementDataState.measuringBodyFat) {
               _measurementStateStr = 'Анализ состава тела...';
+              _isMeasuring = true;
             } else if (measurementState == PPMeasurementDataState.measuringHeartRate) {
               _measurementStateStr = 'Измерение пульса...';
+              _isMeasuring = true;
             } else {
-              _measurementStateStr = 'Взвешивание...';
+              if (!_showResults) {
+                _measurementStateStr = 'Взвешивание...';
+                _isMeasuring = false;
+              }
             }
           });
         }
@@ -129,6 +134,34 @@ class _DeviceIceState extends State<DeviceIce> {
     );
   }
 
+  Widget _buildAnalysisLoading() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(
+            width: 80,
+            height: 80,
+            child: CircularProgressIndicator(
+              strokeWidth: 6,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+          ),
+          const SizedBox(height: 30),
+          Text(
+            _measurementStateStr,
+            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            "Пожалуйста, не сходите с весов",
+            style: TextStyle(color: Colors.white54, fontSize: 14),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSettingsPanel() {
     return Container(
       height: 100,
@@ -137,7 +170,6 @@ class _DeviceIceState extends State<DeviceIce> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
-          // Закомментированы проблемные методы для проверки работы сетки анализов
           _buildActionChip(Icons.refresh, "Сброс", () => PPPeripheralIce.exitNetworkConfig()),
           _buildActionChip(Icons.settings_bluetooth, "Unit", () => PPPeripheralIce.syncUnit(PPUnitType.Unit_LB)),
           _buildActionChip(Icons.history, "История", () => PPPeripheralIce.fetchHistoryData(callBack: (list, success) {})),
@@ -195,13 +227,33 @@ class _DeviceIceState extends State<DeviceIce> {
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text("АНАЛИЗ СОСТАВА ТЕЛА", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+              child: Text(
+                "АНАЛИЗ СОСТАВА ТЕЛА",
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+              ),
             ),
           ),
           Expanded(
-            child: (_weightValue == 0)
-                ? const Center(child: Text("Встаньте на весы голыми ногами", style: TextStyle(color: Colors.white38)))
-                : AnalysisGrid(bodyData: result),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 500),
+              child: _weightValue == 0
+                  ? const Center(
+                      child: Text(
+                        "Встаньте на весы голыми ногами",
+                        style: TextStyle(color: Colors.white38),
+                      ),
+                    )
+                  : _isMeasuring
+                      ? _buildAnalysisLoading()
+                      : _showResults
+                          ? AnalysisGrid(bodyData: result)
+                          : const Center(
+                              child: Text(
+                                "Ожидание завершения анализа...",
+                                style: TextStyle(color: Colors.white38),
+                              ),
+                            ),
+            ),
           ),
           _buildSettingsPanel(),
         ],
